@@ -1,0 +1,10 @@
+# /etc/sudoers.d/my_updates
+# Allow srimanr to run sync-system.sh commands without password
+
+srimanr ALL=(ALL) NOPASSWD: /usr/bin/apt-fast update
+srimanr ALL=(ALL) NOPASSWD: /usr/bin/nice -n -10 /usr/bin/ionice -c2 -n0 /usr/bin/apt-fast dist-upgrade -y
+srimanr ALL=(ALL) NOPASSWD: /usr/bin/killall snap-store
+srimanr ALL=(ALL) NOPASSWD: /usr/bin/nice -n -10 /usr/bin/ionice -c2 -n0 /usr/bin/snap refresh
+srimanr ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart snapd
+srimanr ALL=(ALL) NOPASSWD: /usr/bin/nice -n -5 /usr/bin/ionice -c2 -n0 /usr/bin/apt autoremove -y
+srimanr ALL=(ALL) NOPASSWD: /usr/bin/nice -n -5 /usr/bin/ionice -c2 -n0 /usr/bin/apt clean 
