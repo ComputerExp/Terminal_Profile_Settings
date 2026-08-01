@@ -43,12 +43,12 @@ gitprompt() {
 }
 
 # 7. Cleanup Command
-alias cleanup="rm -rf ~/.cache/* && sudo apt clean"
+alias cleanup="rm -rf ~/.cache/* && sudo /usr/bin/nice -n -5 /usr/bin/ionice -c2 -n0 /usr/bin/apt clean"
 
 # 8. Mirror List update command
 updateMirrorList() {
         sudo sed -i "0,/^\s*#*\s*MIRRORS=.*/{s|^\s*#*\s*MIRRORS=.*|MIRRORS=( $(cat /etc/apt/sources.list.d/nala-sources.list | grep -o 'http[s]*://[^ ]*' | sort -u | awk '{print "\x27" $0 "\x27,"}' | tr '\n' ' ' | sed 's/,$//') )|}" /etc/apt-fast.conf
 
 }
-export RANGER_LOAD_DEFAULT_RC="false"
-
+# 9. Smaller alias for clearing the screen
+alias cls='clear'

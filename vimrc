@@ -29,7 +29,7 @@ set autoindent
 set clipboard=unnamedplus
 set hlsearch
 imap <c-s> <Esc>:w<CR>a
-colorscheme delek
+colorscheme slate
 set cursorline          " Highlight the current line
 set showtabline=2
 
