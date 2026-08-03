@@ -36,8 +36,11 @@ gitprompt() {
     GIT_PS1_SHOWUPSTREAM="auto"
     GIT_PS1_SHOWCOLORHINTS=true
 
+    # 3. Silently fetch upstream changes in background
+   (git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git fetch --quiet &) >/dev/null 2>&1
+
     # 3. Update the prompt string
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$(__git_ps1 " (%s)")\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$(__git_ps1 " (%s)")\n\$ '
     
     echo "Git terminal polish activated! ✨"
 }
