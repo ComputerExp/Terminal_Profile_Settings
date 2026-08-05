@@ -61,8 +61,61 @@ sudo touch /etc/sudoers.d/my_updates
 ```bash
 sudo visudo /etc/sudoers.d/my_updates
 ```
+> ***Important : Install [apt-fast](https://github.com/ilikenwf/apt-fast) in you system to use the commands given***
+
+9. Execute the following commands
+```bash
+sudo apt update && sudo apt install aria2 -y
+sudo add-apt-repository ppa:apt-fast/stable -y
+sudo apt update && sudo apt install apt-fast -y
+```
+
+10. In the interactive wizard do:
+    1. <b> Download Manager Choice </b>
+
+        Prompt: It will ask you to choose a download manager (usually listing aria2c or axel).
+
+        Action: Select aria2c using your arrow keys and press Enter (since you already installed aria2).
+
+    1. <b> Maximum Number of Connections </b>
+
+        Prompt: It will ask you for the maximum number of connections per server (_MAX_CON_PER_SERVER).
+
+        Action: Type 20 and press Enter.
+
+    3. <b> Suppress Confirmation Prompt </b>
+
+        Prompt: It will ask if you want to suppress the confirmation message ([Y/n]) before installing packages.
+
+        Action: Select No and press Enter.
+    
+        Why? Choosing "No" is safer because it allows you to see exactly which packages and dependencies are about to be installed before you agree to change your system.
 
 9. Enjoy password-less updates in your system 😀
 
+---
+
+### Setting up nvim in your system
+
+> ***Settting up nvim helps you in coding easily in you terminal with great IDE like features***
+
+1. Change the nvim_setup file as an executable
+```bash
+cd ~/dotfiles/ 
+chmod +x nvim_setup
+```
+2. Execute the file 
+```bash
+.\nvim_setup
+```
+3. Let it run 
+4. Enjoy your nvim editor and install favourite extension using `:Mason` command
+
+---
+---
+<p align='center'>Created By <b>R Sriman Naarayanan</b></p>
+
+---
+---
 
 
