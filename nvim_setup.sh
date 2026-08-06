@@ -7,13 +7,15 @@ set -e
 echo "🚀 [1/4] Snapping up system binaries with apt-fast..."
 sudo apt-fast update
 sudo apt-fast install -y git curl nodejs npm python3 python3-pip ripgrep build-essential unzip
-
+yes | npm install -g tree-sitter-cli
+sudo apt install xclip -y
 echo "📦 [2/4] Deploying cutting-edge Neovim via Snap..."
 sudo snap install nvim --classic
 
-echo "🧼 [3/4] Resetting previous configurations..."
+echo "🧼 [3/4] Resetting previous configurations and setting up new config and path variables..."
 rm -rf "$HOME/.config/nvim" "$HOME/.local/share/nvim" "$HOME/.local/state/nvim"
 mkdir -p "$HOME/.config/nvim"
+echo 'export NVIM_RTP="$HOME/.local/share/nvim/site"' >> ~/.bashrc
 
 echo "📝 [4/4] Injecting the monolithic Master Lua configuration..."
 cat << 'EOF' > "$HOME/.config/nvim/init.lua"
@@ -51,27 +53,18 @@ vim.opt.rtp:prepend(lazypath)
 -- ============================================================================
 require("lazy").setup({
   -- Core Theme (Loads First)
-  --{ 
-    --"catppuccin/nvim", 
-   -- name = "catppuccin", 
-   -- priority = 1000,
-   -- config = function()
-   --   vim.cmd.colorscheme("catppuccin")
-   -- end
- -- },
+  { 
+    "catppuccin/nvim", 
+    name = "catppuccin", 
+    priority = 1000,
+  },
  
   -- Status Line (Loads via Safe Component Initialization)
   { 
     "nvim-lualine/lualine.nvim", 
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
-      -- Look for Catppuccin dynamically; use 'auto' if it's still configuring
       local lualine_theme = 'auto'
-      local status, _ = pcall(require, 'catppuccin')
-      if status then
-        lualine_theme = 'catppuccin'
-      end
-
       require('lualine').setup({
         options = { theme = lualine_theme }
       })
@@ -189,4 +182,5 @@ vim.keymap.set('n', '<leader>dp', vim.diagnostic.goto_prev, { desc = "Prev Error
 vim.cmd([[ colorscheme catppuccin ]]) 
 
 EOF
+
 
