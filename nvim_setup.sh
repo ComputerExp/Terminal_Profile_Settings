@@ -31,83 +31,206 @@ vim.opt.expandtab = true
 vim.opt.termguicolors = true
 vim.opt.clipboard = "unnamedplus"
 vim.opt.mouse = "a"
-vim.cmd([[ let @c = "\<Esc>:%+y\<CR>i" ]])
+vim.cmd([[ let @c = "\<Esc>:%+y\<CR>" ]])
 
 -- Traditional Vim-style save shortcuts for Tmux compatibility
 vim.cmd([[ nmap <C-s> :w<CR> ]])
-vim.cmd([[ imap <C-s> <Esc><C-s>a ]])                  
+vim.cmd([[ imap <C-s> <Esc><C-s>a ]])
+
 -- ============================================================================
 -- 2. BOOTSTRAP PACKAGE MANAGER (lazy.nvim)
 -- ============================================================================
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({
-    "git", "clone", "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath,
-  })
+    vim.fn.system({
+        "git", "clone", "--filter=blob:none",
+        "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath,
+    })
 end
 vim.opt.rtp:prepend(lazypath)
 
 -- ============================================================================
 -- 3. THE COMPLETE SYNCHRONIZED PLUGIN LAYOUT
 -- ============================================================================
+
 require("lazy").setup({
-  -- Core Theme (Loads First)
-  { 
-    "catppuccin/nvim", 
-    name = "catppuccin", 
-    priority = 1000,
-  },
- 
-  -- Status Line (Loads via Safe Component Initialization)
-  { 
-    "nvim-lualine/lualine.nvim", 
-    dependencies = { "nvim-tree/nvim-web-devicons" },
-    config = function()
-      local lualine_theme = 'auto'
-      require('lualine').setup({
-        options = { theme = lualine_theme }
-      })
-    end
-  },
+    -- Core Theme (Loads First)
+    {
+        "catppuccin/nvim",
+        name = "catppuccin",
+        flavour = "macchiato",
+        priority = 1000
+    },
 
-  -- File Explorer Sidebar
-  { 
-    "nvim-tree/nvim-tree.lua", 
-    dependencies = { "nvim-tree/nvim-web-devicons" },
-    config = function()
-      require("nvim-tree").setup({
-        sort_by = "case_sensitive",
-        view = { width = 30 },
-        renderer = { group_empty = true },
-        filters = { dotfiles = false },
-      })
-    end
-  },
+    -- Status Line
+    {
+        "nvim-lualine/lualine.nvim",
+        dependencies = { "nvim-tree/nvim-web-devicons" },
+        config = function()
+            local lualine_theme = 'auto'
+            require('lualine').setup({
+                options = { theme = lualine_theme }
+            })
+        end
+    },
 
-  -- Universal Fuzzy Finder
-  { "nvim-telescope/telescope.nvim", branch = "0.1.x", dependencies = { "nvim-lua/plenary.nvim" } },
+    -- File Explorer Sidebar
+    {
+        "nvim-tree/nvim-tree.lua",
+        dependencies = { "nvim-tree/nvim-web-devicons" },
+        config = function()
+            require("nvim-tree").setup({
+                sort_by = "case_sensitive",
+                view = { width = 30 },
+                renderer = { group_empty = true },
+                filters = { dotfiles = false },
+            })
+        end
+    },
 
-  -- Syntax Highlighting Engine
-  { 
-    "nvim-treesitter/nvim-treesitter", 
-    build = ":TSUpdate",
-    config = function()
-      require('nvim-treesitter.config').setup({
-        ensure_installed = { "python", "c", "cpp", "asm", "sql", "lua" },
-        highlight = { enable = true },
-      })
-    end
-  },
 
-  -- Intelligent Auto-Popup Autocomplete Engine
-  { "neovim/nvim-lspconfig" },
-  { "williamboman/mason.nvim", config = true },
-  { "williamboman/mason-lspconfig.nvim" },
-  { "hrsh7th/nvim-cmp" },
-  { "hrsh7th/cmp-nvim-lsp" },
-  { "hrsh7th/cmp-buffer" },
-  { "hrsh7th/cmp-path" },
+    -- Universal Fuzzy Finder
+    {
+        "nvim-telescope/telescope.nvim",
+        branch = "0.1.x",
+        dependencies = { "nvim-lua/plenary.nvim" },
+        config = function()
+            require("telescope").setup({
+                defaults = {
+                    preview = {
+                        enable = false, -- disable preview globally
+                    },
+                },
+            })
+        end,
+    },
+
+    -- Syntax Highlighting Engine
+    {
+        "nvim-treesitter/nvim-treesitter",
+        build = ":TSUpdate",
+        lazy = false,
+        config = function()
+            require('nvim-treesitter.config').setup({
+                ensure_installed = { "python", "c", "cpp", "asm", "sql", "lua" },
+                highlight = { enable = true },
+            })
+        end
+    },
+
+    -- Unified LSP & Autocompletion Engine
+    {
+        "neovim/nvim-lspconfig",
+        dependencies = {
+            { "williamboman/mason.nvim", config = true },
+            "williamboman/mason-lspconfig.nvim",
+            "hrsh7th/nvim-cmp",
+            "hrsh7th/cmp-nvim-lsp",
+            "hrsh7th/cmp-buffer",
+            "hrsh7th/cmp-path",
+        },
+        config = function()
+            local capabilities = require("cmp_nvim_lsp").default_capabilities()
+            local lspconfig = require("lspconfig")
+
+            -- Setup mason-lspconfig (includes sqlls and default handlers)
+            require("mason-lspconfig").setup({
+                ensure_installed = { "pylsp" },
+                handlers = {
+                    function(server_name)
+                        lspconfig[server_name].setup({
+                            capabilities = capabilities,
+                        })
+                    end,
+                    ["sqlls"] = function()
+                        lspconfig.sqlls.setup({
+                            capabilities = capabilities,
+                            root_dir = lspconfig.util.root_pattern(".sqllsrc.json", ".git"),
+                        })
+                    end,
+                },
+            })
+
+            -- Configure nvim-cmp completion sources
+            local cmp = require("cmp")
+            cmp.setup({
+                completion = { autocomplete = { cmp.TriggerEvent.TextChanged } },
+                sources = cmp.config.sources({
+                    { name = "nvim_lsp" },
+                    { name = "path" },
+                    { name = "buffer" },
+                }),
+                mapping = cmp.mapping.preset.insert({
+                    ["<C-Space>"] = cmp.mapping.complete(),
+                    ["<CR>"] = cmp.mapping.confirm({ select = true }),
+                    ["<Tab>"] = cmp.mapping(function(fallback)
+                        if cmp.visible() then
+                            cmp.select_next_item()
+                        else
+                            fallback()
+                        end
+                    end, { "i", "s" }),
+                    ["<S-Tab>"] = cmp.mapping(function(fallback)
+                        if cmp.visible() then
+                            cmp.select_prev_item()
+                        else
+                            fallback()
+                        end
+                    end, { "i", "s" }),
+                }),
+            })
+        end,
+    },
+
+    -- Dynamic Formatting Engine (Conform.nvim)
+    {
+        "stevearc/conform.nvim",
+        event = { "BufWritePre" },
+        cmd = { "ConformInfo" },
+        opts = {
+            formatters_by_ft = {
+                python = { "darker", "black", stop_after_first = true },
+                c = { "clang-format" },
+                cpp = { "clang-format" },
+                javascript = { "prettierd", "prettier", stop_after_first = true },
+                typescript = { "prettierd", "prettier", stop_after_first = true },
+                json = { "prettier" },
+                html = { "prettier" },
+                sh = { "shfmt" },
+                lua = { "stylua" },
+                ["_"] = { "lsp" },
+            },
+            format_on_save = {
+                timeout_ms = 2000,
+                lsp_format = "fallback",
+            },
+        },
+        config = function(_, opts)
+            require("conform").setup(opts)
+        end,
+    },
+
+    -- Keybinding Cheat-Sheet Popup
+    {
+        "folke/which-key.nvim",
+        event = "VeryLazy",
+        init = function()
+            vim.o.timeout = true
+            vim.o.timeoutlen = 300 -- Popup appears after 300ms pause
+        end,
+        opts = {
+            -- Default options work out of the box
+        },
+        keys = {
+            {
+                "<leader>?",
+                function()
+                    require("which-key").show({ global = false })
+                end,
+                desc = "Show Buffer Keymaps",
+            },
+        },
+    },
 })
 
 -- ============================================================================
@@ -115,72 +238,37 @@ require("lazy").setup({
 -- ============================================================================
 vim.keymap.set('n', '<C-n>', ':NvimTreeToggle<CR>', { silent = true })
 
+
 local builtin = require('telescope.builtin')
-vim.keymap.set('n', '<leader>p', builtin.find_files, { desc = "Find Files" })
+
+-- Find files without preview (default)
+vim.keymap.set('n', '<leader>p', function()
+    builtin.find_files({ previewer = false })
+end, { desc = "Find Files (no preview)" })
+
+-- Find files with preview (on demand)
+vim.keymap.set('n', '<leader>P', function()
+    builtin.find_files({ previewer = true })
+end, { desc = "Find Files (with preview)" })
+
+-- Global text search (keep preview enabled if you want)
 vim.keymap.set('n', '<leader>f', builtin.live_grep, { desc = "Global Text Search" })
+-- Manual format keymap using Conform
+vim.keymap.set({ "n", "v" }, "<leader>fm", function()
+    require("conform").format({ async = false, timeout_ms = 2000, lsp_format = "fallback" })
+end, { desc = "Format buffer or visual selection" })
 
 -- ============================================================================
--- 5. AUTOMATIC POPUP ACCEPTER LOGIC
+-- 5. DIAGNOSTICS & BACKEND SHORTCUTS
 -- ============================================================================
-local cmp = require'cmp'
-cmp.setup({
-  completion = { autocomplete = { cmp.TriggerEvent.TextChanged } },
-  mapping = cmp.mapping.preset.insert({
-    ['<C-Space>'] = cmp.mapping.complete(),
-    ['<CR>'] = cmp.mapping.confirm({ select = true }),
-    ['<Tab>'] = cmp.mapping(function(fallback)
-      if cmp.visible() then cmp.select_next_item() else fallback() end
-    end, { 'i', 's' }),
-  }),
-  sources = cmp.config.sources({
-    { name = 'nvim-lsp' },
-    { name = 'path' },
-    { name = 'buffer' },
-  })
-})
-
--- ============================================================================
--- 6. LSP BACKGROUND ROUTING
--- ============================================================================
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
-local lspconfig = require('lspconfig')
-
-require("mason-lspconfig").setup({
-    handlers = {
-        function(server_name)
-            lspconfig[server_name].setup({ capabilities = capabilities })
-        end,
-        ["sqlls"] = function()
-            lspconfig.sqlls.setup({
-                capabilities = capabilities,
-                root_dir = lspconfig.util.root_pattern(".sqllsrc.json", ".git")
-            })
-        end,
-    }
-})
-
--- ============================================================================
--- 7. CLEANUP BACKEND AUTOMATIONS
--- ============================================================================
-vim.api.nvim_create_autocmd("BufWritePre", {
-    pattern = "*.py",
-    callback = function()
-        local view = vim.fn.winsaveview()
-        vim.cmd([[%!black - 2>/dev/null]])
-        vim.fn.winrestview(view)
-    end,
-})
-
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = "Line Diagnostic" })
 vim.keymap.set('n', '<leader>dn', vim.diagnostic.goto_next, { desc = "Next Error" })
 vim.keymap.set('n', '<leader>dp', vim.diagnostic.goto_prev, { desc = "Prev Error" })
 
 -- ============================================================================
--- 8. YOUR DELAYED STARTUP EXECUTION STRATEGY
+-- 6. DELAYED STARTUP EXECUTION STRATEGY
 -- ============================================================================
--- This fires at the absolute end of the loading pipeline. Zero errors, pure beauty.
-vim.cmd([[ colorscheme catppuccin ]]) 
-
+vim.cmd([[ colorscheme catppuccin ]])
 EOF
 
 
