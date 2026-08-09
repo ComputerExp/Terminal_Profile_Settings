@@ -7,6 +7,10 @@ set -e
 echo "🚀 [1/4] Snapping up system binaries with apt-fast..."
 sudo apt-fast update
 sudo apt-fast install -y git curl nodejs npm python3 python3-pip ripgrep build-essential unzip
+mkdir ~/.npm-global
+npm config set prefix '~/.npm-global'
+echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
 yes | npm install -g tree-sitter-cli
 sudo apt install xclip -y
 echo "📦 [2/4] Deploying cutting-edge Neovim via Snap..."

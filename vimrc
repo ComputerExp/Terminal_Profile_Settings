@@ -1,4 +1,3 @@
-
 " --- DISPLAY & THEME FIXES ---
 " Force the mode (-- INSERT --) to be visible with a specific color
 highlight ModeMsg ctermfg=white ctermbg=red cterm=bold
@@ -20,7 +19,7 @@ endif
 
 " --- CODING PREFERENCES (Optional but Recommended) ---
 set number              " Show line numbers
-set relativenumber      " Great for jumping lines quickly
+set ignorecase
 set tabstop=4           " Number of spaces a tab counts for
 set shiftwidth=4        " Number of spaces for auto-indent
 set expandtab           " Convert tabs to spaces
