@@ -1,5 +1,26 @@
 #!/bin/bash
 
+# Rename the current directory to dotfiles
+
+# 1. Get the current absolute path of this script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+# 2. Extract the parent directory path and the current folder name
+PARENT_DIR=$(dirname "$SCRIPT_DIR")
+CURRENT_NAME=$(basename "$SCRIPT_DIR")
+
+# 3. Define the strict target name your aliases expect
+TARGET_NAME="dotfiles"
+
+# 4. Only rename if the current name doesn't match the target
+if [ "$CURRENT_NAME" != "$TARGET_NAME" ]; then
+    mv "$PARENT_DIR/$CURRENT_NAME" "$PARENT_DIR/$TARGET_NAME"
+    echo "SUCCESS: Repository directory renamed to '$TARGET_NAME'."
+    echo "Please run: cd ../$TARGET_NAME to refresh your terminal."
+else
+    echo "Directory name is already correct."
+fi
+
 # Get the absolute path to this dotfiles directory
 DOT_DIR=$(pwd)
 
